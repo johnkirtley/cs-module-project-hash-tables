@@ -2,6 +2,7 @@ class HashTableEntry:
     """
     Linked List hash table key/value pair
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -21,8 +22,9 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
-
+        self.capacity = capacity
+        self.data = [None] * capacity
+        self.size = 0
 
     def get_num_slots(self):
         """
@@ -35,7 +37,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.capacity
 
     def get_load_factor(self):
         """
@@ -44,7 +46,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.size / self.capacity
 
     def fnv1(self, key):
         """
@@ -55,7 +57,6 @@ class HashTable:
 
         # Your code here
 
-
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
@@ -63,14 +64,17 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
-
+        new_hash = 5381
+        for x in key:
+            new_hash = ((new_hash << 5) + new_hash) + ord(x)
+        return new_hash & 0xFFFFFFFF
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
+        # return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
@@ -82,7 +86,22 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        if self.data[index] == None:
+            self.data[index] = HashTableEntry(key, value)
+            self.size += 1
+        else:
+            entry = self.data[index]
+            if entry.key == key:
+                entry.value = value
 
+            else:
+                while entry.key != key and entry.next != None:
+                    entry = entry.next
+                entry.next = HashTableEntry(key, value)
+                self.size += 1
+        if self.get_load_factor() > 0.7:
+            self.resize(self.capacity * 2)
 
     def delete(self, key):
         """
@@ -93,7 +112,26 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
 
+        if self.data[index].key == None:
+            return
+
+        elif self.data[index].key == key:
+            self.data[index] = None
+            self.size -= 1
+
+        elif (self.data[index].key != key) and (self.data[index].next != None):
+            prev = self.data[index]
+            current = self.data[index].next
+
+            while current.key != key and current.next != None:
+                prev = current
+                current = current.next
+
+            if current.key == key:
+                prev.next = current.next
+                self.size -= 1
 
     def get(self, key):
         """
@@ -104,7 +142,16 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        entry = self.data[index]
+        if entry == None:
+            return entry
 
+        while entry.key != key and entry.next != None:
+            entry = entry.next
+
+        if entry.key == key:
+            return entry.value
 
     def resize(self, new_capacity):
         """
@@ -114,7 +161,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        temp = self.data
+        self.data = [None] * new_capacity
+        self.capacity = new_capacity
+        self.size = 0
 
+        for val in temp:
+            while val:
+                self.put(val.key, val.value)
+                val = val.next
 
 
 if __name__ == "__main__":
