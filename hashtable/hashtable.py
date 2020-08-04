@@ -102,6 +102,9 @@ class HashTable:
                 self.size += 1
         if self.get_load_factor() > 0.7:
             self.resize(self.capacity * 2)
+        else:
+            if self.get_load_factor() < 0.2 and (self.size / 2 >= 8):
+                self.resize(int(self.capacity / 2))
 
     def delete(self, key):
         """
